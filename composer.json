@@ -17,8 +17,8 @@
       "email": "dickson@alle-ai.com"
     }
   ],
-  "version": "1.0.1",
-  "minimum-stability": "dev",
+  "version": "1.0.2",
+  "minimum-stability": "stable",
   "require": {
     "php": "^7.4",
     "ext-curl": "*"
