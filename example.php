@@ -12,6 +12,6 @@ $data = array(
   );
 $response = $anthropic_api->generateText($data);
 
-echo $response['completion']; // Displaying only completion
+echo $response['completion']; // To display only completion
 
 
