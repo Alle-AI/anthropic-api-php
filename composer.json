@@ -25,7 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Alle-AI\\anthropic-api-php\\": "src/"
+      "Alle_AI\\Anthropic\\": "src/"
     }
   }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Alle_AI;
+namespace Alle_AI\Anthropic;
 
 class AnthropicAPI {
   private $api_key;

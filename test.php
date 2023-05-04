@@ -3,7 +3,7 @@ require_once 'vendor/autoload.php'; // Include the Composer autoloader
 
 $api_key = 'your-anthropic-api-key';
 
-$anthropic_api = new Alle_AI\AnthropicAPI($api_key);
+$anthropic_api = new Alle_AI\Anthropic\AnthropicAPI($api_key);
 $data = array(
     'prompt' => 'The quick brown fox jumps over the lazy dog',
     'model' => 'claude-v1',
