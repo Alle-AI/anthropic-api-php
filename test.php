@@ -10,8 +10,8 @@ $data = array(
     'max_tokens_to_sample' => 300,
     'stop_sequences' => array("\n\nHuman:")
   );
-$response = json_decode($anthropic_api->generateText($data), true);
+$response = $anthropic_api->generateText($data);
 
-echo $response;
+echo $response['completion']; // Displaying only completion
 
 
