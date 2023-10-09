@@ -74,5 +74,5 @@ If you have any questions or feedback, please use the [discussion board](https:/
 ## License
 
 This software is copyright (c) 2023-present [Alle-AI | Your All-In-One AI Platform](https://alle-ai.com).
-
+This software is free to use, copy, modify, merge, publish, distribute.
 For copyright and license information, please view the **LICENSE** file.
