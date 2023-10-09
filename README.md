@@ -47,10 +47,10 @@ require_once 'vendor/autoload.php'; // Include the Composer autoloader
 $api_key = 'your-anthropic-api-key';
 
 $anthropic_api = new Alle_AI\Anthropic\AnthropicAPI($api_key);
-$prompt = "Write a short poem about AI.";
+$prompt = "How many toes do dogs have?";
 $data = array(
     'prompt' => '\n\nHuman: '.$prompt.'\n\nAssistant:', // Be sure to format prompt appropriately
-    'model' => 'claude-v1',
+    'model' => 'claude-2',
     'max_tokens_to_sample' => 300,
     'stop_sequences' => array("\n\nHuman:")
   );
