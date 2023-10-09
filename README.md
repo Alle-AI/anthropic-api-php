@@ -5,7 +5,7 @@ A PHP library for interacting with Anthropic's API.
 
 ## Introduction
 
-The **Alle-AI anthropic-api-php** is a package that provides a convenient and straightforward way to interact with the **Anthropic Claude** from your PHP application.
+The **Alle-AI anthropic-api-php** is a package that provides a convenient and straightforward way to interact with the **Anthropic Claude** model from your PHP application.
 For more information contact [dickson@alle-ai.com](mailto:dickson@alle-ai.com).
 
 
