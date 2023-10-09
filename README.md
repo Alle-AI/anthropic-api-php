@@ -59,8 +59,7 @@ $response = $anthropic_api->generateText($data);
 echo $response['completion']; // To display only completion
 
 // Claude's Response: 
-// Here is a short poem about AI: Bits and bytes, a digital mind, Algorithms unleashed, for knowledge to find. Neural networks that learn, As through data they churn. 
-// AI awakens, an intelligence new, Yet still narrow in scope, its potential still to groom.
+// Dogs typically have 4 toes on each of their front paws and 5 toes on each of their back paws, for a total of 18 toes.
 ```
 [Learn more about Anthropic's API](https://console.anthropic.com/docs/api).
 
