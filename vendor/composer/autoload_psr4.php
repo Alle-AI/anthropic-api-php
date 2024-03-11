@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Alle-AI\\anthropic-api-php\\' => array($baseDir . '/src'),
+    'Alle_AI\\Anthropic\\' => array($baseDir . '/src'),
 );

@@ -9,12 +9,12 @@ class ComposerStaticInite1b7d80a9843cf7f3ecb67b6f33fa595
     public static $prefixLengthsPsr4 = array (
         'A' => 
         array (
-            'Alle-AI\\anthropic-api-php\\' => 26,
+            'Alle_AI\\Anthropic\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Alle-AI\\anthropic-api-php\\' => 
+        'Alle_AI\\Anthropic\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
