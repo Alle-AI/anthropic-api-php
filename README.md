@@ -39,7 +39,7 @@ Please see the [Anthropic API documentation](https://console.anthropic.com/docs)
 
 Integrating **Anthropic's Claude Model** into your application is now as simple as a few lines of code:
 
-### Chat Completion using Claude (claude-2)
+### Chat Completion using Claude (claude-2.1)
 
 ```php
 require_once 'vendor/autoload.php'; // Include the Composer autoloader
