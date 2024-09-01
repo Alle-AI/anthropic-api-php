@@ -12,10 +12,9 @@ class AnthropicAPI {
     $this->version = $version;
   }
 
-  public function generateText($data) {
- 
+  public function generateText($data, $api_type = 'complete') {
     $options = array(
-      CURLOPT_URL => 'https://api.anthropic.com/v1/complete',
+      CURLOPT_URL => 'https://api.anthropic.com/v1/' . $api_type,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_HTTPHEADER => array(
         'x-api-key: ' . $this->api_key,
