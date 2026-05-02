@@ -60,11 +60,13 @@
         "phpstan/phpstan-deprecation-rules": "^1.2",
         "laravel/pint": "^1.18",
         "guzzlehttp/guzzle": "^7.9",
-        "nyholm/psr7": "^1.8"
+        "nyholm/psr7": "^1.8",
+        "aws/aws-sdk-php": "^3.300",
+        "google/auth": "^1.40"
     },
     "suggest": {
-        "alle-ai/anthropic-bedrock": "AWS Bedrock auth provider for the Anthropic client",
-        "alle-ai/anthropic-vertex": "Google Vertex AI auth provider for the Anthropic client",
+        "aws/aws-sdk-php": "Required for Auth\\BedrockAuth — AWS SigV4 signing for the Bedrock runtime endpoint",
+        "google/auth": "Required for Auth\\VertexAuth — Google ADC token acquisition for Vertex AI",
         "guzzlehttp/guzzle": "Default PSR-18 HTTP client used when one isn't injected",
         "infection/infection": "Mutation testing for contributors"
     },
