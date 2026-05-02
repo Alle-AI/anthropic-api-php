@@ -43,6 +43,15 @@ final class ContentBlockFactory
             'redacted_thinking' => new RedactedThinkingBlock(
                 data: isset($raw['data']) && is_string($raw['data']) ? $raw['data'] : '',
             ),
+            'server_tool_use' => new ServerToolUseBlock(
+                id: isset($raw['id']) && is_string($raw['id']) ? $raw['id'] : '',
+                name: isset($raw['name']) && is_string($raw['name']) ? $raw['name'] : '',
+                input: isset($raw['input']) && is_array($raw['input']) ? self::asStringMap($raw['input']) : [],
+            ),
+            'web_search_tool_result' => new WebSearchToolResultBlock(
+                toolUseId: isset($raw['tool_use_id']) && is_string($raw['tool_use_id']) ? $raw['tool_use_id'] : '',
+                content: self::normalizeWebSearchContent($raw['content'] ?? null),
+            ),
             'mcp_tool_use' => new McpToolUseBlock(
                 id: isset($raw['id']) && is_string($raw['id']) ? $raw['id'] : '',
                 name: isset($raw['name']) && is_string($raw['name']) ? $raw['name'] : '',
@@ -56,6 +65,26 @@ final class ContentBlockFactory
             ),
             default => new UnknownBlock($type, $raw),
         };
+    }
+
+    /**
+     * Normalize the `content` field on a `web_search_tool_result` block.
+     * Anthropic sends a list of result entries on success, or an error
+     * envelope `{type:'web_search_tool_result_error', error_code:'...'}`
+     * on failure; pass through strings unchanged.
+     *
+     * @return array<array-key, mixed>|string
+     */
+    private static function normalizeWebSearchContent(mixed $raw): array|string
+    {
+        if (is_string($raw)) {
+            return $raw;
+        }
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        return [];
     }
 
     /**
