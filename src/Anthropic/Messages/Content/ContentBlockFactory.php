@@ -22,6 +22,7 @@ final class ContentBlockFactory
         return match ($type) {
             'text' => new TextBlock(
                 text: isset($raw['text']) && is_string($raw['text']) ? $raw['text'] : '',
+                citations: self::parseCitations($raw),
             ),
             'image' => self::imageFromArray($raw),
             'tool_use' => new ToolUseBlock(
@@ -42,8 +43,56 @@ final class ContentBlockFactory
             'redacted_thinking' => new RedactedThinkingBlock(
                 data: isset($raw['data']) && is_string($raw['data']) ? $raw['data'] : '',
             ),
+            'mcp_tool_use' => new McpToolUseBlock(
+                id: isset($raw['id']) && is_string($raw['id']) ? $raw['id'] : '',
+                name: isset($raw['name']) && is_string($raw['name']) ? $raw['name'] : '',
+                serverName: isset($raw['server_name']) && is_string($raw['server_name']) ? $raw['server_name'] : '',
+                input: isset($raw['input']) && is_array($raw['input']) ? self::asStringMap($raw['input']) : [],
+            ),
+            'mcp_tool_result' => new McpToolResultBlock(
+                toolUseId: isset($raw['tool_use_id']) && is_string($raw['tool_use_id']) ? $raw['tool_use_id'] : '',
+                content: $raw['content'] ?? null,
+                isError: (bool) ($raw['is_error'] ?? false),
+            ),
             default => new UnknownBlock($type, $raw),
         };
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $raw
+     *
+     * @return array<string, mixed>
+     */
+    private static function asStringMap(array $raw): array
+    {
+        $out = [];
+        foreach ($raw as $k => $v) {
+            $out[(string) $k] = $v;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<string, mixed>  $raw
+     *
+     * @return list<Citation>
+     */
+    private static function parseCitations(array $raw): array
+    {
+        if (!isset($raw['citations']) || !is_array($raw['citations'])) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($raw['citations'] as $entry) {
+            if (is_array($entry)) {
+                /** @var array<string, mixed> $entry */
+                $out[] = Citation::fromArray($entry);
+            }
+        }
+
+        return $out;
     }
 
     /**
