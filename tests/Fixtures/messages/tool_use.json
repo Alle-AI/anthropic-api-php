@@ -1,0 +1,24 @@
+{
+  "id": "msg_01TOOL01",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-7",
+  "content": [
+    {"type": "text", "text": "Let me check the weather for you."},
+    {
+      "type": "tool_use",
+      "id": "toolu_01XYZ",
+      "name": "get_weather",
+      "input": {"city": "Accra", "units": "c"}
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 60,
+    "output_tokens": 35,
+    "cache_creation_input_tokens": null,
+    "cache_read_input_tokens": null,
+    "service_tier": "standard"
+  }
+}

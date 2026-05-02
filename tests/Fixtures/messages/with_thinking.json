@@ -1,0 +1,19 @@
+{
+  "id": "msg_01THINK",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-opus-4-7",
+  "content": [
+    {"type": "thinking", "thinking": "Let me work through this step by step. The bat costs $1 more than the ball...", "signature": "abc123sig"},
+    {"type": "text", "text": "The ball costs $0.05 and the bat costs $1.05."}
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 30,
+    "output_tokens": 120,
+    "cache_creation_input_tokens": null,
+    "cache_read_input_tokens": null,
+    "service_tier": "standard"
+  }
+}
