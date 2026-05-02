@@ -1,19 +1,31 @@
 <?php
-require_once 'vendor/autoload.php'; // Include the Composer autoloader
 
-$api_key = 'your-anthropic-api-key';
-$anthropic_version = "2023-06-01";
+declare(strict_types=1);
 
-$anthropic_api = new Alle_AI\Anthropic\AnthropicAPI($api_key, $anthropic_version);
-$prompt = "Write a short poem about AI";
-$data = array(
-    'prompt' => "\n\nHuman: ".$prompt."\n\nAssistant:", // Be sure to append these appropriately.
-    'model' => 'claude-2.1',
-    'max_tokens_to_sample' => 300,
-    'stop_sequences' => array("\n\nHuman:")
-  );
-$response = $anthropic_api->generateText($data);
+/**
+ * Quickstart example.
+ *
+ * For more examples, see the examples/ directory.
+ *
+ * Usage:
+ *   composer install
+ *   composer require guzzlehttp/guzzle nyholm/psr7   # if not already installed
+ *   ANTHROPIC_API_KEY=sk-ant-... php example.php
+ */
 
-echo $response['completion']; // To display only completion
+require_once __DIR__ . '/vendor/autoload.php';
 
+use AlleAI\Anthropic\Client;
+use AlleAI\Anthropic\Models\Model;
 
+$client = Client::fromApiKey(getenv('ANTHROPIC_API_KEY') ?: 'your-anthropic-api-key');
+
+$response = $client->messages()->create(
+    model: Model::CLAUDE_SONNET_4_7,
+    maxTokens: 300,
+    messages: [
+        ['role' => 'user', 'content' => 'How many toes do dogs have?'],
+    ],
+);
+
+echo $response->text(), "\n";
