@@ -16,7 +16,8 @@ final readonly class ToolUseBlock implements ContentBlock
         public string $id,
         public string $name,
         public array $input,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

@@ -30,7 +30,8 @@ final class CurlStreamTransport
         private readonly ?string $userAgent = null,
         private readonly float $connectTimeout = 30.0,
         private readonly float $totalTimeout = 600.0,
-    ) {}
+    ) {
+    }
 
     /**
      * Send `$request` and yield each raw SSE chunk as it arrives.

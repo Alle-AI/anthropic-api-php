@@ -30,5 +30,7 @@ final class Headers
      */
     public const DEFAULT_BASE_URL = 'https://api.anthropic.com';
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 }

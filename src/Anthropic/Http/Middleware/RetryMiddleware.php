@@ -27,7 +27,8 @@ final readonly class RetryMiddleware implements Middleware
     public function __construct(
         private RetryPolicy $policy,
         private Sleeper $sleeper,
-    ) {}
+    ) {
+    }
 
     public function handle(RequestInterface $request, callable $next): ResponseInterface
     {

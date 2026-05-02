@@ -16,7 +16,9 @@ final class MinimalStream implements StreamInterface
 {
     private int $offset = 0;
 
-    public function __construct(private readonly string $contents) {}
+    public function __construct(private readonly string $contents)
+    {
+    }
 
     public function __toString(): string
     {

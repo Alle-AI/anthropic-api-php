@@ -17,7 +17,8 @@ final readonly class ToolChoice
         public string $type,
         public ?string $name = null,
         public ?bool $disableParallelToolUse = null,
-    ) {}
+    ) {
+    }
 
     public static function auto(?bool $disableParallel = null): self
     {

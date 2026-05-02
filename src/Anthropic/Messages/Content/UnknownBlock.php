@@ -18,7 +18,8 @@ final readonly class UnknownBlock implements ContentBlock
     public function __construct(
         public string $blockType,
         public array $raw,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

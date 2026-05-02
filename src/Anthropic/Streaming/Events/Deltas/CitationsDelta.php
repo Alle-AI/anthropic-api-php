@@ -12,7 +12,9 @@ final readonly class CitationsDelta implements Delta
     /**
      * @param  array<string, mixed>  $citation
      */
-    public function __construct(public array $citation) {}
+    public function __construct(public array $citation)
+    {
+    }
 
     public function type(): string
     {

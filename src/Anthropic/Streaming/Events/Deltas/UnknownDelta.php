@@ -16,7 +16,8 @@ final readonly class UnknownDelta implements Delta
     public function __construct(
         public string $deltaType,
         public array $raw,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

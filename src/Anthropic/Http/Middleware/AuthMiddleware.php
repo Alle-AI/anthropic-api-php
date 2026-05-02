@@ -10,7 +10,9 @@ use Psr\Http\Message\ResponseInterface;
 
 final readonly class AuthMiddleware implements Middleware
 {
-    public function __construct(private AuthProvider $auth) {}
+    public function __construct(private AuthProvider $auth)
+    {
+    }
 
     public function handle(RequestInterface $request, callable $next): ResponseInterface
     {

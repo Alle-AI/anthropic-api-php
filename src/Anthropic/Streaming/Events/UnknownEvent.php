@@ -15,7 +15,8 @@ final readonly class UnknownEvent implements StreamEvent
     public function __construct(
         public string $eventType,
         public array $raw,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

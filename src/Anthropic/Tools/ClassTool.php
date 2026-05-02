@@ -97,7 +97,6 @@ abstract class ClassTool implements Tool
                 'float' => is_numeric($value) ? (float) $value : $value,
                 'bool' => is_bool($value) ? $value : (bool) $value,
                 'array' => is_array($value) ? $value : [$value],
-                default => $value,
             };
         }
 

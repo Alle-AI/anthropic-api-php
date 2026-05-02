@@ -24,7 +24,8 @@ final readonly class ClientOptions
         public RetryPolicy $retryPolicy,
         public float $timeout,
         public ?string $userAgentSuffix,
-    ) {}
+    ) {
+    }
 
     public static function default(AuthProvider $auth): self
     {

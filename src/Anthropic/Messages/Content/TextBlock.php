@@ -9,7 +9,8 @@ final readonly class TextBlock implements ContentBlock
     public function __construct(
         public string $text,
         public ?CacheControl $cacheControl = null,
-    ) {}
+    ) {
+    }
 
     public static function of(string $text): self
     {

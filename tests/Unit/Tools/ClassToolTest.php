@@ -19,7 +19,9 @@ final class ClassToolTest extends TestCase
         $schema = $tool->inputSchema();
         self::assertSame('object', $schema['type']);
         self::assertSame(['city'], $schema['required']);
+        self::assertIsArray($schema['properties']);
         self::assertArrayHasKey('units', $schema['properties']);
+        self::assertIsArray($schema['properties']['units']);
         self::assertSame(['c', 'f'], $schema['properties']['units']['enum']);
     }
 

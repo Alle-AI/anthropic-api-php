@@ -42,8 +42,10 @@ final class ExceptionFactory
             }
         }
 
+        /** @var array<string, list<string>> $headers */
         $headers = $response->getHeaders();
-        $requestId = $response->getHeaderLine('x-request-id') ?: null;
+        $requestIdHeader = $response->getHeaderLine('x-request-id');
+        $requestId = $requestIdHeader !== '' ? $requestIdHeader : null;
 
         $class = match (true) {
             $status === 400 => BadRequestException::class,
@@ -54,8 +56,8 @@ final class ExceptionFactory
             $status === 422 => UnprocessableEntityException::class,
             $status === 429 => RateLimitException::class,
             $status === 529 => OverloadedException::class,
-            $status >= 500  => InternalServerException::class,
-            default         => ApiException::class,
+            $status >= 500 => InternalServerException::class,
+            default => ApiException::class,
         };
 
         return new $class(

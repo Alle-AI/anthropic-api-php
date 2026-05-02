@@ -13,7 +13,9 @@ final readonly class UserAgentMiddleware implements Middleware
     public const SDK_NAME = 'alle-ai-anthropic-api-php';
     public const SDK_VERSION = '2.0.0-dev';
 
-    public function __construct(private ?string $suffix = null) {}
+    public function __construct(private ?string $suffix = null)
+    {
+    }
 
     public function handle(RequestInterface $request, callable $next): ResponseInterface
     {

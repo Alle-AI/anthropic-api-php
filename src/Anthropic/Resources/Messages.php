@@ -40,7 +40,8 @@ final class Messages
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
         private readonly ClientOptions $options,
-    ) {}
+    ) {
+    }
 
     /**
      * Create a message.
@@ -234,8 +235,10 @@ final class Messages
         $response = $this->transport->sendRequest($request);
         $decoded = Json::decode((string) $response->getBody());
 
+        $tokens = $decoded['input_tokens'] ?? 0;
+
         return [
-            'input_tokens' => isset($decoded['input_tokens']) ? (int) $decoded['input_tokens'] : 0,
+            'input_tokens' => is_numeric($tokens) ? (int) $tokens : 0,
         ];
     }
 
@@ -397,8 +400,6 @@ final class Messages
     }
 
     /**
-     * @param  string|list<ContentBlock|array<string, mixed>>  $content
-     *
      * @return string|list<array<string, mixed>>
      */
     private function normalizeContent(mixed $content): string|array
@@ -413,16 +414,27 @@ final class Messages
             );
         }
 
-        return array_values(array_map(
-            static fn (mixed $item): array => match (true) {
-                $item instanceof ContentBlock => $item->toArray(),
-                is_array($item) => $item,
-                is_string($item) => ['type' => 'text', 'text' => $item],
-                default => throw new \InvalidArgumentException(
-                    'Each content item must be a ContentBlock, array, or string.',
-                ),
-            },
-            $content,
-        ));
+        $out = [];
+        foreach ($content as $item) {
+            if ($item instanceof ContentBlock) {
+                $out[] = $item->toArray();
+                continue;
+            }
+            if (is_array($item)) {
+                /** @var array<string, mixed> $item */
+                $out[] = $item;
+                continue;
+            }
+            if (is_string($item)) {
+                $out[] = ['type' => 'text', 'text' => $item];
+                continue;
+            }
+
+            throw new \InvalidArgumentException(
+                'Each content item must be a ContentBlock, array, or string.',
+            );
+        }
+
+        return $out;
     }
 }

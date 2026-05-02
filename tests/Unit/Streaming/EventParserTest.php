@@ -39,13 +39,25 @@ final class EventParserTest extends TestCase
         self::assertInstanceOf(MessageStopEvent::class, $events[8]);
 
         // Verify text deltas survived parsing.
-        self::assertInstanceOf(TextDelta::class, $events[3]->delta);
-        self::assertSame('Hello', $events[3]->delta->text);
-        self::assertSame(', ', $events[4]->delta->text);
-        self::assertSame('world!', $events[5]->delta->text);
+        $delta3 = $events[3];
+        self::assertInstanceOf(ContentBlockDeltaEvent::class, $delta3);
+        self::assertInstanceOf(TextDelta::class, $delta3->delta);
+        self::assertSame('Hello', $delta3->delta->text);
+
+        $delta4 = $events[4];
+        self::assertInstanceOf(ContentBlockDeltaEvent::class, $delta4);
+        self::assertInstanceOf(TextDelta::class, $delta4->delta);
+        self::assertSame(', ', $delta4->delta->text);
+
+        $delta5 = $events[5];
+        self::assertInstanceOf(ContentBlockDeltaEvent::class, $delta5);
+        self::assertInstanceOf(TextDelta::class, $delta5->delta);
+        self::assertSame('world!', $delta5->delta->text);
 
         // Final message_delta carries stop_reason.
-        self::assertSame(StopReason::END_TURN, $events[7]->stopReason);
+        $event7 = $events[7];
+        self::assertInstanceOf(MessageDeltaEvent::class, $event7);
+        self::assertSame(StopReason::END_TURN, $event7->stopReason);
     }
 
     public function testHandlesChunkSplitsAtArbitraryPoints(): void

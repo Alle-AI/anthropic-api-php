@@ -11,7 +11,8 @@ final readonly class ContentBlockStartEvent implements StreamEvent
     public function __construct(
         public int $index,
         public ContentBlock $contentBlock,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

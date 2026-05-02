@@ -10,7 +10,9 @@ namespace AlleAI\Anthropic\Messages\Content;
  */
 final readonly class RedactedThinkingBlock implements ContentBlock
 {
-    public function __construct(public string $data) {}
+    public function __construct(public string $data)
+    {
+    }
 
     public function type(): string
     {

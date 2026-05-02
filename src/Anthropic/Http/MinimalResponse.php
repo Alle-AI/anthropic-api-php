@@ -56,7 +56,7 @@ final class MinimalResponse implements ResponseInterface
         return '';
     }
 
-    public function withStatus(int $code, string $reasonPhrase = ''): MessageInterface
+    public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface
     {
         throw new \LogicException('MinimalResponse is immutable.');
     }

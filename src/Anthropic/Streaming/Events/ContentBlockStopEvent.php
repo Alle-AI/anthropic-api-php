@@ -6,7 +6,9 @@ namespace AlleAI\Anthropic\Streaming\Events;
 
 final readonly class ContentBlockStopEvent implements StreamEvent
 {
-    public function __construct(public int $index) {}
+    public function __construct(public int $index)
+    {
+    }
 
     public function type(): string
     {

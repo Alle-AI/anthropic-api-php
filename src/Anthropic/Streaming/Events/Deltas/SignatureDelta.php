@@ -10,7 +10,9 @@ namespace AlleAI\Anthropic\Streaming\Events\Deltas;
  */
 final readonly class SignatureDelta implements Delta
 {
-    public function __construct(public string $signature) {}
+    public function __construct(public string $signature)
+    {
+    }
 
     public function type(): string
     {

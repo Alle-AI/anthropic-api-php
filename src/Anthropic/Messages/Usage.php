@@ -18,7 +18,8 @@ final readonly class Usage
         public ?int $cacheCreationInputTokens = null,
         public ?int $cacheReadInputTokens = null,
         public ?string $serviceTier = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @param  array<array-key, mixed>  $raw
@@ -26,18 +27,24 @@ final readonly class Usage
     public static function fromArray(array $raw): self
     {
         return new self(
-            inputTokens: (int) ($raw['input_tokens'] ?? 0),
-            outputTokens: (int) ($raw['output_tokens'] ?? 0),
-            cacheCreationInputTokens: isset($raw['cache_creation_input_tokens'])
-                ? (int) $raw['cache_creation_input_tokens']
-                : null,
-            cacheReadInputTokens: isset($raw['cache_read_input_tokens'])
-                ? (int) $raw['cache_read_input_tokens']
-                : null,
+            inputTokens: self::intOrZero($raw['input_tokens'] ?? null),
+            outputTokens: self::intOrZero($raw['output_tokens'] ?? null),
+            cacheCreationInputTokens: self::intOrNull($raw['cache_creation_input_tokens'] ?? null),
+            cacheReadInputTokens: self::intOrNull($raw['cache_read_input_tokens'] ?? null),
             serviceTier: isset($raw['service_tier']) && is_string($raw['service_tier'])
                 ? $raw['service_tier']
                 : null,
         );
+    }
+
+    private static function intOrZero(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private static function intOrNull(mixed $value): ?int
+    {
+        return is_numeric($value) ? (int) $value : null;
     }
 
     public function totalTokens(): int

@@ -17,7 +17,8 @@ final readonly class ImageBlock implements ContentBlock
         public string $data,
         public ?string $mediaType = null,
         public ?CacheControl $cacheControl = null,
-    ) {}
+    ) {
+    }
 
     public static function fromUrl(string $url, ?CacheControl $cacheControl = null): self
     {

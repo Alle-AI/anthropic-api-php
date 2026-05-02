@@ -20,7 +20,8 @@ final readonly class RetryPolicy
         public array $retryableStatuses = [408, 409, 429, 500, 502, 503, 504, 529],
         public bool $honorRetryAfter = true,
         public bool $retryOnConnectionError = true,
-    ) {}
+    ) {
+    }
 
     public static function disabled(): self
     {

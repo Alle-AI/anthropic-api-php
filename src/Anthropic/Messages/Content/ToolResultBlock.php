@@ -17,7 +17,8 @@ final readonly class ToolResultBlock implements ContentBlock
         public mixed $content,
         public bool $isError = false,
         public ?CacheControl $cacheControl = null,
-    ) {}
+    ) {
+    }
 
     public static function ok(string $toolUseId, mixed $content): self
     {

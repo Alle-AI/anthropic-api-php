@@ -47,7 +47,8 @@ final class Client
         private readonly CurlStreamTransport $streamTransport,
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
-    ) {}
+    ) {
+    }
 
     /**
      * Most common construction path: create a client from an API key string.

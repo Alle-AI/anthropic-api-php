@@ -17,5 +17,7 @@ namespace AlleAI\Anthropic\Tools\Schema\Attributes;
 #[\Attribute(\Attribute::TARGET_PARAMETER)]
 final readonly class Param
 {
-    public function __construct(public string $description) {}
+    public function __construct(public string $description)
+    {
+    }
 }

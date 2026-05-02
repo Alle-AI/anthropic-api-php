@@ -20,9 +20,15 @@ final class BearerAuth implements AuthProvider
      */
     public function __construct(string|callable $token)
     {
-        $this->tokenProvider = is_callable($token)
-            ? \Closure::fromCallable($token)
-            : static fn (): string => $token;
+        if (is_string($token)) {
+            $literal = $token;
+            $this->tokenProvider = static fn (): string => $literal;
+
+            return;
+        }
+
+        $callable = \Closure::fromCallable($token);
+        $this->tokenProvider = static fn (): string => (string) $callable();
     }
 
     public function authenticate(RequestInterface $request): array

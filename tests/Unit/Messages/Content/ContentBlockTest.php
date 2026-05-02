@@ -66,12 +66,14 @@ final class ContentBlockTest extends TestCase
     {
         $tmp = tempnam(sys_get_temp_dir(), 'img') . '.png';
         // 1x1 transparent PNG
-        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=');
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=', true);
+        self::assertIsString($png);
         file_put_contents($tmp, $png);
 
         try {
             $block = ImageBlock::fromFile($tmp);
             $arr = $block->toArray();
+            self::assertIsArray($arr['source']);
             self::assertSame('base64', $arr['source']['type']);
             self::assertSame('image/png', $arr['source']['media_type']);
             self::assertSame(base64_encode($png), $arr['source']['data']);

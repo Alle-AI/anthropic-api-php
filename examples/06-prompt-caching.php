@@ -22,7 +22,7 @@ $client = Client::fromApiKey(getenv('ANTHROPIC_API_KEY') ?: '');
 
 // Build a long-enough system prompt for caching to engage.
 $longContext = str_repeat(
-    "You are a precise editor. Always reply with concise corrections. ",
+    'You are a precise editor. Always reply with concise corrections. ',
     300,
 );
 

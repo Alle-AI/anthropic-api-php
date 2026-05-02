@@ -31,7 +31,7 @@ $response = $client->messages()->create(
 
 foreach ($response->content as $block) {
     if ($block instanceof ThinkingBlock) {
-        echo "[thinking] ", substr($block->thinking, 0, 200), "...\n\n";
+        echo '[thinking] ', substr($block->thinking, 0, 200), "...\n\n";
     }
     if ($block instanceof TextBlock) {
         echo $block->text, "\n";

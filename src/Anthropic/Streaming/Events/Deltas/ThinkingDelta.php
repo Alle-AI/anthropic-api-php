@@ -6,7 +6,9 @@ namespace AlleAI\Anthropic\Streaming\Events\Deltas;
 
 final readonly class ThinkingDelta implements Delta
 {
-    public function __construct(public string $thinking) {}
+    public function __construct(public string $thinking)
+    {
+    }
 
     public function type(): string
     {

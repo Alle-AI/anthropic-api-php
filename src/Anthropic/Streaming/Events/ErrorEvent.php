@@ -14,7 +14,8 @@ final readonly class ErrorEvent implements StreamEvent
     public function __construct(
         public string $errorType,
         public string $message,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

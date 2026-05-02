@@ -11,7 +11,9 @@ namespace AlleAI\Anthropic\Streaming\Events\Deltas;
  */
 final readonly class InputJsonDelta implements Delta
 {
-    public function __construct(public string $partialJson) {}
+    public function __construct(public string $partialJson)
+    {
+    }
 
     public function type(): string
     {

@@ -31,6 +31,8 @@ final class SchemaGeneratorTest extends TestCase
     public function testNullableMarksField(): void
     {
         $schema = SchemaGenerator::fromMethod(SchemaFixtureNullable::class, 'run');
+        self::assertIsArray($schema['properties']);
+        self::assertIsArray($schema['properties']['note']);
         self::assertTrue($schema['properties']['note']['nullable']);
     }
 
@@ -38,18 +40,23 @@ final class SchemaGeneratorTest extends TestCase
     {
         $schema = SchemaGenerator::fromMethod(SchemaFixtureDefault::class, 'run');
         self::assertSame(['city'], $schema['required']);
+        self::assertIsArray($schema['properties']);
         self::assertArrayHasKey('units', $schema['properties']);
     }
 
     public function testEnumAttributeAddsEnum(): void
     {
         $schema = SchemaGenerator::fromMethod(SchemaFixtureEnum::class, 'run');
+        self::assertIsArray($schema['properties']);
+        self::assertIsArray($schema['properties']['units']);
         self::assertSame(['c', 'f'], $schema['properties']['units']['enum']);
     }
 
     public function testBackedEnumDetected(): void
     {
         $schema = SchemaGenerator::fromMethod(SchemaFixtureBackedEnum::class, 'run');
+        self::assertIsArray($schema['properties']);
+        self::assertIsArray($schema['properties']['status']);
         self::assertSame('string', $schema['properties']['status']['type']);
         self::assertSame(['ok', 'fail'], $schema['properties']['status']['enum']);
     }
@@ -63,17 +70,22 @@ final class SchemaFixtureA
         int $count,
         float $price,
         bool $urgent,
-    ): void {}
+    ): void {
+    }
 }
 
 final class SchemaFixtureNullable
 {
-    public function run(?string $note): void {}
+    public function run(?string $note): void
+    {
+    }
 }
 
 final class SchemaFixtureDefault
 {
-    public function run(string $city, string $units = 'c'): void {}
+    public function run(string $city, string $units = 'c'): void
+    {
+    }
 }
 
 final class SchemaFixtureEnum
@@ -81,7 +93,8 @@ final class SchemaFixtureEnum
     public function run(
         #[Enum('c', 'f')]
         string $units,
-    ): void {}
+    ): void {
+    }
 }
 
 enum FixtureStatus: string
@@ -92,5 +105,7 @@ enum FixtureStatus: string
 
 final class SchemaFixtureBackedEnum
 {
-    public function run(FixtureStatus $status): void {}
+    public function run(FixtureStatus $status): void
+    {
+    }
 }

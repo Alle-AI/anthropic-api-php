@@ -32,7 +32,8 @@ final readonly class MessageResponse
         public ?string $stopSequence,
         public Usage $usage,
         public array $raw,
-    ) {}
+    ) {
+    }
 
     /**
      * @param  array<array-key, mixed>  $raw

@@ -19,7 +19,9 @@ final class MiddlewareStack
     private array $middleware = [];
 
     /** @param  callable(RequestInterface): ResponseInterface  $handler */
-    public function __construct(private $handler) {}
+    public function __construct(private $handler)
+    {
+    }
 
     public function push(Middleware $middleware): self
     {

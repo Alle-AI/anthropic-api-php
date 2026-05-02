@@ -17,7 +17,8 @@ final readonly class MessageDeltaEvent implements StreamEvent
         public ?StopReason $stopReason,
         public ?string $stopSequence,
         public ?Usage $usage,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

@@ -14,7 +14,8 @@ final readonly class ThinkingBlock implements ContentBlock
     public function __construct(
         public string $thinking,
         public ?string $signature = null,
-    ) {}
+    ) {
+    }
 
     public function type(): string
     {

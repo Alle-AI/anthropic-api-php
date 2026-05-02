@@ -23,7 +23,8 @@ final readonly class ThinkingConfig
     private function __construct(
         public string $type,
         public ?int $budgetTokens,
-    ) {}
+    ) {
+    }
 
     public static function enabled(int $budgetTokens): self
     {

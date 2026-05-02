@@ -16,7 +16,8 @@ final readonly class CacheControl
     public function __construct(
         public string $type = 'ephemeral',
         public ?string $ttl = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @param  '5m'|'1h'|null  $ttl

@@ -29,6 +29,7 @@ final class FakePsr18Client implements ClientInterface
     }
 
     /**
+     * @param  array<array-key, mixed>  $body
      * @param  array<string, string>  $headers
      */
     public function pushJsonResponse(int $status, array $body, array $headers = []): self

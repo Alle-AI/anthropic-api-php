@@ -96,6 +96,8 @@ final class MessagesTest extends TestCase
         );
 
         $body = $http->lastRequestBody();
+        self::assertIsArray($body['messages']);
+        self::assertIsArray($body['messages'][0]);
         self::assertSame([
             ['type' => 'text', 'text' => 'hello'],
             ['type' => 'text', 'text' => 'world'],
@@ -119,6 +121,8 @@ final class MessagesTest extends TestCase
 
         $body = $http->lastRequestBody();
         self::assertIsArray($body['system']);
+        self::assertIsArray($body['system'][1]);
+        self::assertIsArray($body['system'][1]['cache_control']);
         self::assertSame('ephemeral', $body['system'][1]['cache_control']['type']);
         self::assertSame('1h', $body['system'][1]['cache_control']['ttl']);
     }

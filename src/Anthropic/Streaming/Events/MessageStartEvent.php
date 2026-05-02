@@ -14,7 +14,9 @@ final readonly class MessageStartEvent implements StreamEvent
     /**
      * @param  array<string, mixed>  $message  raw `message` payload
      */
-    public function __construct(public array $message) {}
+    public function __construct(public array $message)
+    {
+    }
 
     public function type(): string
     {

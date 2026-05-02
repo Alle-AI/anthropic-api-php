@@ -150,14 +150,29 @@ final class EventParser
             'content_block_start' => $this->buildContentBlockStart($payload),
             'content_block_delta' => $this->buildContentBlockDelta($payload),
             'content_block_stop' => new ContentBlockStopEvent(
-                index: isset($payload['index']) ? (int) $payload['index'] : 0,
+                index: isset($payload['index']) && is_numeric($payload['index']) ? (int) $payload['index'] : 0,
             ),
             'message_delta' => $this->buildMessageDelta($payload),
             'message_stop' => new MessageStopEvent(),
             'ping' => new PingEvent(),
             'error' => $this->buildError($payload),
-            default => new UnknownEvent($type ?? '', $payload),
+            default => new UnknownEvent($type ?? '', self::asStringMap($payload)),
         };
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $raw
+     *
+     * @return array<string, mixed>
+     */
+    private static function asStringMap(array $raw): array
+    {
+        $out = [];
+        foreach ($raw as $key => $value) {
+            $out[(string) $key] = $value;
+        }
+
+        return $out;
     }
 
     /**
@@ -165,7 +180,7 @@ final class EventParser
      */
     private function buildContentBlockStart(array $payload): ContentBlockStartEvent
     {
-        $index = isset($payload['index']) ? (int) $payload['index'] : 0;
+        $index = isset($payload['index']) && is_numeric($payload['index']) ? (int) $payload['index'] : 0;
         $blockRaw = isset($payload['content_block']) && is_array($payload['content_block'])
             ? $payload['content_block']
             : [];
@@ -182,7 +197,7 @@ final class EventParser
      */
     private function buildContentBlockDelta(array $payload): ContentBlockDeltaEvent
     {
-        $index = isset($payload['index']) ? (int) $payload['index'] : 0;
+        $index = isset($payload['index']) && is_numeric($payload['index']) ? (int) $payload['index'] : 0;
         $deltaRaw = isset($payload['delta']) && is_array($payload['delta']) ? $payload['delta'] : [];
 
         /** @var array<string, mixed> $deltaRaw */
