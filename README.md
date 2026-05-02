@@ -7,7 +7,7 @@
 [![PHP Version](https://img.shields.io/packagist/php-v/alle-ai/anthropic-api-php.svg?style=flat-square)](https://packagist.org/packages/alle-ai/anthropic-api-php)
 [![License](https://img.shields.io/packagist/l/alle-ai/anthropic-api-php.svg?style=flat-square)](LICENSE)
 
-A first-class PHP client for the Anthropic Messages API. Built for Claude 4 and beyond — Messages, streaming, tool use, vision, prompt caching, extended thinking, MCP connector, Files, Batches.
+A first-class PHP client for the Anthropic Messages API. Built for Claude 4 and beyond — Messages, streaming, tool use, vision, prompt caching, extended thinking, MCP connector, Files, Batches. Works with the direct API, **AWS Bedrock**, and **Google Vertex AI**.
 
 > **Looking for the v1.x docs?** See the [`1.x`](https://github.com/Alle-AI/anthropic-api-php/tree/1.x) branch. The v1 surface (`Alle_AI\Anthropic\AnthropicAPI`) is preserved as a deprecation shim through the v2.x line and removed in v3.0. See [UPGRADING.md](UPGRADING.md).
 
@@ -19,10 +19,14 @@ A first-class PHP client for the Anthropic Messages API. Built for Claude 4 and 
 - **Vision** — `ImageBlock::fromFile()` / `fromUrl()` / `fromBase64()`
 - **Prompt caching** — `cache_control` on any block; `Usage::$cacheReadInputTokens` in the response
 - **Extended thinking** — `ThinkingConfig::enabled(budgetTokens: 10_000)` for reasoning models
-- **MCP connector** — call any remote MCP server via Anthropic's hosted connector *(coming in 2.1.0)*
+- **MCP connector** — call any remote MCP server via Anthropic's hosted connector
+- **Files API** — `Resources\Files::upload()` / `get()` / `list()` / `delete()` / `downloadTo()`
+- **Batches API** — `Resources\Batches` with JSONL results streaming and a `pollUntilDone()` helper
+- **Models listing** — `$client->models()->list()` paginated catalog
 - **PSR-18 / PSR-17** — bring any HTTP client (Guzzle, Symfony HttpClient, Buzz, …)
 - **Retries** — exponential backoff with jitter, honors `Retry-After`, idempotency keys auto-attached
-- **Pluggable auth** — API key, Bearer token. Bedrock and Vertex AI in optional sibling packages
+- **PSR-3 logging** — opt-in `LoggingMiddleware` with correlation ids, latency, and request-id
+- **Pluggable auth** — API key, Bearer token, **AWS Bedrock** (SigV4), **Google Vertex AI** (ADC + OAuth)
 
 ## Installation
 
@@ -222,6 +226,58 @@ try {
 }
 ```
 
+## Alternative deployments
+
+Same client, different backend.
+
+### AWS Bedrock
+
+```bash
+composer require aws/aws-sdk-php
+```
+
+```php
+use AlleAI\Anthropic\Auth\BedrockAuth;
+
+$client = Client::builder()
+    ->withAuth(BedrockAuth::fromEnvironment(region: 'us-east-1'))
+    ->build();
+
+// Use Bedrock model id format:
+$response = $client->messages()->create(
+    model: 'anthropic.claude-sonnet-4-7-v1:0',
+    maxTokens: 1024,
+    messages: [['role' => 'user', 'content' => 'Hello']],
+);
+```
+
+`BedrockAuth::fromEnvironment()` uses the AWS default credentials chain (env vars, `~/.aws/credentials`, IAM roles, etc.). The auth provider rewrites the URL to `bedrock-runtime.{region}.amazonaws.com`, transforms the body to Bedrock's expected shape, and signs with SigV4.
+
+### Google Vertex AI
+
+```bash
+composer require google/auth
+```
+
+```php
+use AlleAI\Anthropic\Auth\VertexAuth;
+
+$client = Client::builder()
+    ->withAuth(VertexAuth::fromEnvironment(
+        projectId: 'my-gcp-project',
+        region: 'us-east5',
+    ))
+    ->build();
+
+$response = $client->messages()->create(
+    model: 'claude-sonnet-4-7@20260101',  // Vertex publisher format
+    maxTokens: 1024,
+    messages: [['role' => 'user', 'content' => 'Hello']],
+);
+```
+
+`VertexAuth::fromEnvironment()` uses Google ADC for tokens. Pass `projectId` explicitly or set `GOOGLE_CLOUD_PROJECT`; same for region with `GOOGLE_CLOUD_REGION`.
+
 ## Custom HTTP client
 
 The SDK auto-discovers a PSR-18 client via `php-http/discovery`. Inject your own to gain full control:
@@ -244,11 +300,10 @@ $client = Client::builder()
 
 | Tag | Status | Adds |
 |---|---|---|
-| `v2.0.0-beta.1` | shipped on `main` | Messages create + stream, tool use (closure / class / auto-loop), vision, prompt caching, extended thinking, retries, error hierarchy, PSR-18, deprecation shim, full PHPUnit + PHPStan L9 + Pint + GitHub Actions CI |
-| `v2.0.0` | GA | Citations, docs site, mutation testing |
-| `v2.1.0` | | Files API, Batches, MCP connector under `Beta\` |
-| `v2.2.0` | | Sibling packages: `alle-ai/anthropic-bedrock`, `alle-ai/anthropic-vertex`. PSR-3 logging middleware |
-| `v2.3.0` | | Alle-AI sister client (`AlleAI\AlleAI\Client`) for multi-model fan-out |
+| `v2.0.0-beta.1` | shipped | Messages create + stream, tool use, vision, prompt caching, extended thinking, citations, Files, Batches, MCP connector, Models listing, PSR-3 logging, Bedrock + Vertex auth, 12 examples, full test suite, PHPStan level 9, deprecation shim |
+| `v2.0.0` | GA | Beta-feedback bug fixes, mutation testing, docs site |
+| `v2.1.0` | | Async / concurrent helpers; observability extras |
+| `v2.2.0` | | Alle-AI sister client (`AlleAI\AlleAI\Client`) for multi-model fan-out |
 | `v3.0.0` | | Remove `Alle_AI\Anthropic\AnthropicAPI` deprecation shim |
 
 ## Migration from v1.x
