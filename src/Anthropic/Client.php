@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AlleAI\Anthropic;
 
 use AlleAI\Anthropic\Auth\ApiKeyAuth;
+use AlleAI\Anthropic\Http\ConcurrentSender;
+use AlleAI\Anthropic\Http\ConcurrentTransport;
 use AlleAI\Anthropic\Http\CurlStreamTransport;
 use AlleAI\Anthropic\Http\Middleware\AuthMiddleware;
 use AlleAI\Anthropic\Http\Middleware\IdempotencyMiddleware;
@@ -52,6 +54,7 @@ final class Client
         private readonly ClientOptions $options,
         private readonly Transport $transport,
         private readonly CurlStreamTransport $streamTransport,
+        private readonly ConcurrentSender $concurrentTransport,
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
     ) {
@@ -92,6 +95,7 @@ final class Client
         return $this->messagesResource ??= new Messages(
             $this->transport,
             $this->streamTransport,
+            $this->concurrentTransport,
             $this->requestFactory,
             $this->streamFactory,
             $this->options,
@@ -135,6 +139,7 @@ final class Client
         ClientInterface $httpClient,
         ?RequestFactoryInterface $requestFactory = null,
         ?StreamFactoryInterface $streamFactory = null,
+        ?ConcurrentSender $concurrentSender = null,
     ): self {
         $requestFactory ??= Psr17FactoryDiscovery::findRequestFactory();
         $streamFactory ??= Psr17FactoryDiscovery::findStreamFactory();
@@ -152,18 +157,33 @@ final class Client
 
         $transport = new Psr18Transport($httpClient, $middleware);
 
+        $userAgent = sprintf(
+            '%s/%s php/%s',
+            UserAgentMiddleware::SDK_NAME,
+            UserAgentMiddleware::SDK_VERSION,
+            PHP_VERSION,
+        );
+
         $streamTransport = new CurlStreamTransport(
             auth: $options->auth,
-            userAgent: sprintf(
-                '%s/%s php/%s',
-                UserAgentMiddleware::SDK_NAME,
-                UserAgentMiddleware::SDK_VERSION,
-                PHP_VERSION,
-            ),
+            userAgent: $userAgent,
             totalTimeout: $options->timeout,
         );
 
-        return new self($options, $transport, $streamTransport, $requestFactory, $streamFactory);
+        $concurrentTransport = $concurrentSender ?? new ConcurrentTransport(
+            auth: $options->auth,
+            userAgent: $userAgent,
+            totalTimeout: $options->timeout,
+        );
+
+        return new self(
+            $options,
+            $transport,
+            $streamTransport,
+            $concurrentTransport,
+            $requestFactory,
+            $streamFactory,
+        );
     }
 
     /**

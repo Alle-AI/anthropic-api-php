@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AlleAI\Anthropic\Resources;
 
 use AlleAI\Anthropic\ClientOptions;
+use AlleAI\Anthropic\Exceptions\AnthropicException;
+use AlleAI\Anthropic\Http\ConcurrentSender;
 use AlleAI\Anthropic\Http\CurlStreamTransport;
 use AlleAI\Anthropic\Http\Headers;
 use AlleAI\Anthropic\Http\Transport;
@@ -37,6 +39,7 @@ final class Messages
     public function __construct(
         private readonly Transport $transport,
         private readonly CurlStreamTransport $streamTransport,
+        private readonly ConcurrentSender $concurrentTransport,
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
         private readonly ClientOptions $options,
@@ -158,6 +161,259 @@ final class Messages
             ->withHeader(Headers::ACCEPT, 'text/event-stream');
 
         return new EventStream($this->streamTransport->stream($request));
+    }
+
+    /**
+     * Send N independent Messages create() calls in parallel and return
+     * the results in the same order. Each entry of `$requests` is the
+     * same shape you'd pass to `create()` via named arguments — the keys
+     * (`model`, `maxTokens`, `messages`, `system`, `temperature`, ...)
+     * mirror the parameter names. Anything `create()` accepts works.
+     *
+     * Failures are returned in-place as exceptions instead of aborting
+     * the batch:
+     *
+     * ```php
+     * $results = $client->messages()->createMany([
+     *     ['model' => Model::CLAUDE_HAIKU_4_5, 'maxTokens' => 64,
+     *      'messages' => [['role' => 'user', 'content' => 'Translate "hi" to French.']]],
+     *     ['model' => Model::CLAUDE_HAIKU_4_5, 'maxTokens' => 64,
+     *      'messages' => [['role' => 'user', 'content' => 'Translate "hi" to Spanish.']]],
+     * ], concurrency: 5);
+     *
+     * foreach ($results as $i => $result) {
+     *     if ($result instanceof MessageResponse) {
+     *         echo "[$i] ", $result->text(), "\n";
+     *     } else {
+     *         echo "[$i] ERROR: ", $result->getMessage(), "\n";
+     *     }
+     * }
+     * ```
+     *
+     * @param  list<array<string, mixed>>  $requests  named-arg shapes for create()
+     *
+     * @return list<MessageResponse|AnthropicException>  same order as input
+     */
+    public function createMany(array $requests, int $concurrency = 5): array
+    {
+        if ($requests === []) {
+            return [];
+        }
+
+        $psr7Requests = [];
+        $buildErrors = [];
+
+        foreach ($requests as $i => $params) {
+            try {
+                $psr7Requests[$i] = $this->buildCreateRequest($params);
+            } catch (\Throwable $e) {
+                $psr7Requests[$i] = null;
+                $buildErrors[$i] = $e instanceof AnthropicException
+                    ? $e
+                    : new AnthropicException($e->getMessage(), 0, $e);
+            }
+        }
+
+        $sendable = array_values(array_filter(
+            $psr7Requests,
+            static fn ($r): bool => $r !== null,
+        ));
+        $sendableIndex = [];
+        foreach ($psr7Requests as $i => $r) {
+            if ($r !== null) {
+                $sendableIndex[] = $i;
+            }
+        }
+
+        $sent = $this->concurrentTransport->sendAll($sendable, $concurrency);
+
+        /** @var list<MessageResponse|AnthropicException> $results */
+        $results = array_fill(0, count($requests), null);
+        foreach ($sendableIndex as $resultIndex => $originalIndex) {
+            $entry = $sent[$resultIndex];
+            if ($entry->exception !== null) {
+                $results[$originalIndex] = $entry->exception;
+                continue;
+            }
+
+            $body = $entry->body ?? '';
+            try {
+                $decoded = Json::decode($body);
+                $results[$originalIndex] = MessageResponse::fromArray($decoded);
+            } catch (AnthropicException $e) {
+                $results[$originalIndex] = $e;
+            }
+        }
+        foreach ($buildErrors as $i => $e) {
+            $results[$i] = $e;
+        }
+
+        /** @var list<MessageResponse|AnthropicException> $results */
+        return $results;
+    }
+
+    /**
+     * Translate a `create()` named-arg map into a fully built PSR-7 request,
+     * shared between `create()` and `createMany()`.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    private function buildCreateRequest(array $params): \Psr\Http\Message\RequestInterface
+    {
+        if (!isset($params['model'])) {
+            throw new \InvalidArgumentException('createMany: each request needs a "model" key.');
+        }
+        if (!isset($params['maxTokens']) || !is_int($params['maxTokens'])) {
+            throw new \InvalidArgumentException('createMany: each request needs an integer "maxTokens" key.');
+        }
+        if (!isset($params['messages']) || !is_array($params['messages'])) {
+            throw new \InvalidArgumentException('createMany: each request needs a "messages" array.');
+        }
+
+        /** @var Model|string $model */
+        $model = $params['model'] instanceof Model || is_string($params['model'])
+            ? $params['model']
+            : throw new \InvalidArgumentException('createMany: "model" must be a Model or string.');
+
+        /** @var list<array<string, mixed>> $messages */
+        $messages = $params['messages'];
+
+        $rawSystem = $params['system'] ?? null;
+        if ($rawSystem === null) {
+            $system = null;
+        } elseif (is_string($rawSystem)) {
+            $system = $rawSystem;
+        } elseif (is_array($rawSystem)) {
+            $system = $this->asListOfContentBlocksOrArrays($rawSystem);
+        } else {
+            throw new \InvalidArgumentException('createMany: "system" must be a string, array, or null.');
+        }
+
+        $stopSequences = null;
+        if (isset($params['stopSequences']) && is_array($params['stopSequences'])) {
+            $stopSequences = [];
+            foreach ($params['stopSequences'] as $s) {
+                if (is_string($s)) {
+                    $stopSequences[] = $s;
+                }
+            }
+        }
+
+        $rawToolChoice = $params['toolChoice'] ?? null;
+        $toolChoice = null;
+        if (is_string($rawToolChoice)) {
+            $toolChoice = $rawToolChoice;
+        } elseif (is_array($rawToolChoice)) {
+            $toolChoice = $this->asStringMap($rawToolChoice);
+        }
+
+        $metadata = null;
+        if (isset($params['metadata']) && is_array($params['metadata'])) {
+            $metadata = $this->asStringStringMap($params['metadata']);
+        }
+
+        $body = $this->buildBody(
+            model: $model,
+            maxTokens: $params['maxTokens'],
+            messages: $messages,
+            system: $system,
+            temperature: isset($params['temperature']) && is_numeric($params['temperature'])
+                ? (float) $params['temperature']
+                : null,
+            topP: isset($params['topP']) && is_numeric($params['topP']) ? (float) $params['topP'] : null,
+            topK: isset($params['topK']) && is_numeric($params['topK']) ? (int) $params['topK'] : null,
+            stopSequences: $stopSequences,
+            tools: isset($params['tools']) && is_array($params['tools']) ? $this->asListOfArrays($params['tools']) : null,
+            toolChoice: $toolChoice,
+            metadata: $metadata,
+            thinking: isset($params['thinking']) && $params['thinking'] instanceof \AlleAI\Anthropic\Messages\ThinkingConfig
+                ? $params['thinking']
+                : null,
+            mcpServers: isset($params['mcpServers']) && is_array($params['mcpServers'])
+                ? $this->asListOfArrays($params['mcpServers'])
+                : null,
+            stream: false,
+            extraBody: isset($params['extraBody']) && is_array($params['extraBody'])
+                ? $this->asStringMap($params['extraBody'])
+                : [],
+        );
+
+        $idempotencyKey = isset($params['idempotencyKey']) && is_string($params['idempotencyKey'])
+            ? $params['idempotencyKey']
+            : null;
+        $extraHeaders = isset($params['extraHeaders']) && is_array($params['extraHeaders'])
+            ? $this->asStringStringMap($params['extraHeaders'])
+            : [];
+
+        return $this->buildRequest($body, $idempotencyKey, $extraHeaders);
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $value
+     *
+     * @return list<ContentBlock|array<string, mixed>>
+     */
+    private function asListOfContentBlocksOrArrays(array $value): array
+    {
+        $out = [];
+        foreach ($value as $entry) {
+            if ($entry instanceof ContentBlock) {
+                $out[] = $entry;
+            } elseif (is_array($entry)) {
+                /** @var array<string, mixed> $entry */
+                $out[] = $entry;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $value
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function asListOfArrays(array $value): array
+    {
+        $out = [];
+        foreach ($value as $entry) {
+            if (is_array($entry)) {
+                /** @var array<string, mixed> $entry */
+                $out[] = $entry;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $value
+     *
+     * @return array<string, mixed>
+     */
+    private function asStringMap(array $value): array
+    {
+        $out = [];
+        foreach ($value as $k => $v) {
+            $out[(string) $k] = $v;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $value
+     *
+     * @return array<string, string>
+     */
+    private function asStringStringMap(array $value): array
+    {
+        $out = [];
+        foreach ($value as $k => $v) {
+            $out[(string) $k] = is_scalar($v) ? (string) $v : '';
+        }
+
+        return $out;
     }
 
     /**

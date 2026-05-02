@@ -7,6 +7,7 @@ namespace AlleAI\Anthropic\Tests\Support;
 use AlleAI\Anthropic\Auth\ApiKeyAuth;
 use AlleAI\Anthropic\Client;
 use AlleAI\Anthropic\ClientOptions;
+use AlleAI\Anthropic\Http\ConcurrentSender;
 use AlleAI\Anthropic\Http\Headers;
 use AlleAI\Anthropic\Http\RetryPolicy;
 
@@ -25,6 +26,7 @@ final class TestClientFactory
         string $apiKey = 'test-key',
         ?RetryPolicy $retry = null,
         array $beta = [],
+        ?ConcurrentSender $concurrentSender = null,
     ): array {
         $http = new FakePsr18Client();
         $options = new ClientOptions(
@@ -37,7 +39,13 @@ final class TestClientFactory
             userAgentSuffix: null,
         );
 
-        $client = Client::fromComponents($options, $http);
+        $client = Client::fromComponents(
+            $options,
+            $http,
+            null,
+            null,
+            $concurrentSender,
+        );
 
         return [$client, $http];
     }
