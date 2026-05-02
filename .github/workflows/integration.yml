@@ -1,0 +1,39 @@
+name: Integration (live API)
+
+on:
+  schedule:
+    # Nightly at 06:00 UTC.
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Hit live API
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'Alle-AI/anthropic-api-php' }}
+    timeout-minutes: 15
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist
+      - name: Smoke — simple message
+        run: php examples/01-simple-message.php
+      - name: Smoke — streaming
+        run: php examples/02-streaming.php
+      - name: Smoke — tool loop
+        run: php examples/04-tool-loop.php
+      - name: Smoke — prompt caching
+        run: php examples/06-prompt-caching.php
+      - name: Run integration test suite
+        run: vendor/bin/phpunit --testsuite=Integration --no-coverage
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}

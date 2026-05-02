@@ -14,8 +14,8 @@ A first-class PHP client for the Anthropic Messages API. Built for Claude 4 and 
 ## Features
 
 - **Messages API** — typed requests and responses for `POST /v1/messages`
-- **Streaming** — Generator-based SSE iterator with `->toMessage()` aggregator *(coming in 2.0.0-beta.2)*
-- **Tool use** — closure tools, class-based tools with reflection-driven JSON Schema, automatic tool-loop helper *(coming in 2.0.0-beta.2)*
+- **Streaming** — Generator-based SSE iterator with `->toMessage()` aggregator
+- **Tool use** — closure tools, class-based tools with reflection-driven JSON Schema, automatic tool-loop helper
 - **Vision** — `ImageBlock::fromFile()` / `fromUrl()` / `fromBase64()`
 - **Prompt caching** — `cache_control` on any block; `Usage::$cacheReadInputTokens` in the response
 - **Extended thinking** — `ThinkingConfig::enabled(budgetTokens: 10_000)` for reasoning models
@@ -80,6 +80,61 @@ $client = Client::builder()
     ->withRetryPolicy(new RetryPolicy(maxAttempts: 5, baseDelay: 1.0))
     ->withTimeout(120.0)
     ->build();
+```
+
+## Streaming
+
+```php
+use AlleAI\Anthropic\Streaming\Events\ContentBlockDeltaEvent;
+use AlleAI\Anthropic\Streaming\Events\Deltas\TextDelta;
+
+$stream = $client->messages()->stream(
+    model: Model::CLAUDE_SONNET_4_7,
+    maxTokens: 1024,
+    messages: [['role' => 'user', 'content' => 'Tell me a story.']],
+);
+
+foreach ($stream as $event) {
+    if ($event instanceof ContentBlockDeltaEvent && $event->delta instanceof TextDelta) {
+        echo $event->delta->text;
+    }
+}
+
+$final = $stream->toMessage();   // aggregated MessageResponse
+echo "\nDone in {$final->usage->outputTokens} tokens.\n";
+```
+
+## Tool use
+
+```php
+use AlleAI\Anthropic\Tools\ClassTool;
+use AlleAI\Anthropic\Tools\Schema\Attributes\Enum;
+use AlleAI\Anthropic\Tools\Schema\Attributes\Param;
+use AlleAI\Anthropic\Tools\ToolSet;
+
+final class GetWeather extends ClassTool
+{
+    public function name(): string        { return 'get_weather'; }
+    public function description(): string { return 'Get current weather'; }
+
+    /** @return array<string, mixed> */
+    protected function runTool(
+        #[Param('City name')] string $city,
+        #[Param('Units')] #[Enum('c', 'f')] string $units = 'c',
+    ): array {
+        return ['city' => $city, 'temp' => 24, 'units' => $units];
+    }
+}
+
+$loop = $client->messages()->toolLoop(
+    model: Model::CLAUDE_SONNET_4_7,
+    maxTokens: 4096,
+    messages: [['role' => 'user', 'content' => 'Weather in Accra and Tokyo?']],
+    tools: new ToolSet(new GetWeather()),
+);
+
+$final = $loop->run();   // automatic tool-call round-trips until end_turn
+echo $final->text();
 ```
 
 ## Vision
@@ -189,8 +244,7 @@ $client = Client::builder()
 
 | Tag | Status | Adds |
 |---|---|---|
-| `v2.0.0-beta.1` | shipping now | Messages create, vision, caching, extended thinking, retries, error hierarchy, PSR-18, deprecation shim |
-| `v2.0.0-beta.2` | next | Streaming (SSE), tool use, automatic tool-loop, full PHPUnit suite, GitHub Actions CI |
+| `v2.0.0-beta.1` | shipped on `main` | Messages create + stream, tool use (closure / class / auto-loop), vision, prompt caching, extended thinking, retries, error hierarchy, PSR-18, deprecation shim, full PHPUnit + PHPStan L9 + Pint + GitHub Actions CI |
 | `v2.0.0` | GA | Citations, docs site, mutation testing |
 | `v2.1.0` | | Files API, Batches, MCP connector under `Beta\` |
 | `v2.2.0` | | Sibling packages: `alle-ai/anthropic-bedrock`, `alle-ai/anthropic-vertex`. PSR-3 logging middleware |
