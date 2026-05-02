@@ -8,6 +8,7 @@ use AlleAI\Anthropic\Auth\ApiKeyAuth;
 use AlleAI\Anthropic\Http\CurlStreamTransport;
 use AlleAI\Anthropic\Http\Middleware\AuthMiddleware;
 use AlleAI\Anthropic\Http\Middleware\IdempotencyMiddleware;
+use AlleAI\Anthropic\Http\Middleware\LoggingMiddleware;
 use AlleAI\Anthropic\Http\Middleware\RetryMiddleware;
 use AlleAI\Anthropic\Http\Middleware\UserAgentMiddleware;
 use AlleAI\Anthropic\Http\Psr18Transport;
@@ -15,6 +16,7 @@ use AlleAI\Anthropic\Http\Transport;
 use AlleAI\Anthropic\Resources\Batches;
 use AlleAI\Anthropic\Resources\Files;
 use AlleAI\Anthropic\Resources\Messages;
+use AlleAI\Anthropic\Resources\Models as ModelsResource;
 use AlleAI\Anthropic\Util\SystemSleeper;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
@@ -44,6 +46,7 @@ final class Client
     private ?Messages $messagesResource = null;
     private ?Files $filesResource = null;
     private ?Batches $batchesResource = null;
+    private ?ModelsResource $modelsResource = null;
 
     public function __construct(
         private readonly ClientOptions $options,
@@ -115,6 +118,15 @@ final class Client
         );
     }
 
+    public function models(): ModelsResource
+    {
+        return $this->modelsResource ??= new ModelsResource(
+            $this->transport,
+            $this->requestFactory,
+            $this->options,
+        );
+    }
+
     /**
      * @internal  Used by the legacy shim. Public for testing.
      */
@@ -133,6 +145,10 @@ final class Client
             new IdempotencyMiddleware(),
             new RetryMiddleware($options->retryPolicy, new SystemSleeper()),
         ];
+
+        if ($options->logger !== null) {
+            $middleware[] = new LoggingMiddleware($options->logger, logBodies: $options->logBodies);
+        }
 
         $transport = new Psr18Transport($httpClient, $middleware);
 

@@ -7,6 +7,7 @@ namespace AlleAI\Anthropic;
 use AlleAI\Anthropic\Auth\AuthProvider;
 use AlleAI\Anthropic\Http\Headers;
 use AlleAI\Anthropic\Http\RetryPolicy;
+use Psr\Log\LoggerInterface;
 
 /**
  * Immutable configuration for a {@see Client}. Construct via {@see ClientBuilder}.
@@ -24,6 +25,8 @@ final readonly class ClientOptions
         public RetryPolicy $retryPolicy,
         public float $timeout,
         public ?string $userAgentSuffix,
+        public ?LoggerInterface $logger = null,
+        public bool $logBodies = false,
     ) {
     }
 

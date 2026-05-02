@@ -7,24 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta.1] - 2026-05-02
+
+First public beta of the v2 line.
+
 ### Added
 
+**Core**
 - Complete v2.0 rewrite under the `AlleAI\Anthropic\` namespace.
-- `Client` and `ClientBuilder` for fluent construction.
-- `Resources\Messages` for `POST /v1/messages` and `POST /v1/messages/count_tokens`.
-- Typed content blocks: `TextBlock`, `ImageBlock`, `ToolUseBlock`, `ToolResultBlock`, `ThinkingBlock`, `RedactedThinkingBlock`, `UnknownBlock`.
-- `CacheControl` block annotation for prompt caching.
-- `ThinkingConfig` for extended thinking on reasoning models.
-- `Model` value object with constants for known models and a `Model::of()` escape hatch for new ids.
-- Typed exception hierarchy: `AnthropicException` → `ApiException` (per-status subclasses), `RequestException`, `ConnectionException`, `TimeoutException`, `StreamException`, `DeprecationException`.
-- `ExceptionFactory` mapping non-2xx PSR-7 responses to the right exception class with status, error type, request id, and headers attached.
-- `Auth\AuthProvider` interface with `ApiKeyAuth` and `BearerAuth` implementations.
-- HTTP middleware stack: `AuthMiddleware`, `UserAgentMiddleware`, `IdempotencyMiddleware`, `RetryMiddleware`.
+- `Client` and `ClientBuilder` for fluent construction; `Client::fromApiKey()`, `Client::fromEnvironment()`.
+- Typed exception hierarchy: `AnthropicException` → `ApiException` (per-status subclasses), `RequestException`, `ConnectionException`, `TimeoutException`, `StreamException`, `DeprecationException`. `ExceptionFactory` maps non-2xx PSR-7 responses to the right class with status, error type, request id, and headers attached.
+
+**Auth**
+- `Auth\AuthProvider` interface with `ApiKeyAuth` (env-loader included) and `BearerAuth` (literal token or refresh callback) implementations.
+
+**HTTP**
+- PSR-18 / PSR-17 transport with auto-discovery via `php-http/discovery`. Bring any HTTP client.
+- Middleware stack: `AuthMiddleware`, `UserAgentMiddleware`, `IdempotencyMiddleware` (auto UUIDv7 on POST), `RetryMiddleware`, optional `LoggingMiddleware` (PSR-3).
 - `RetryPolicy` with exponential backoff, jitter, and `Retry-After` honoring.
-- PSR-18 / PSR-17 transport with auto-discovery via `php-http/discovery`.
+- `CurlStreamTransport` for SSE streaming (PSR-18 cannot stream; cURL multi-handle drives chunk yielding).
+
+**Messages**
+- `Resources\Messages` for `POST /v1/messages`, `POST /v1/messages/count_tokens`, and SSE streaming via `stream()`.
+- Typed content blocks: `TextBlock`, `ImageBlock` (URL/file/base64 with MIME detection), `DocumentBlock` (file_id/url/base64), `ToolUseBlock`, `ToolResultBlock`, `ThinkingBlock`, `RedactedThinkingBlock`, `McpToolUseBlock`, `McpToolResultBlock`, `Citation`, `CacheControl`, `UnknownBlock` (forward-compat fallback).
+- `ThinkingConfig::enabled(budgetTokens:)` for extended thinking on reasoning models.
+- `Model` value object with constants for known Claude IDs and a `Model::of()` escape hatch for new ones.
+- `Resources\Models` for `GET /v1/models` (paginated) and `GET /v1/models/{id}`.
+
+**Streaming**
+- 8 typed event classes (`MessageStart`, `ContentBlockStart`/`Delta`/`Stop`, `MessageDelta`/`Stop`, `Ping`, `Error`) plus `UnknownEvent` fallback.
+- 6 typed delta classes (`TextDelta`, `InputJsonDelta`, `ThinkingDelta`, `SignatureDelta`, `CitationsDelta`, `UnknownDelta`).
+- `EventParser` (stateful SSE buffer handling arbitrary chunk boundaries / CRLF / comments), `Aggregator` (assembles partial JSON for tool inputs into a final `MessageResponse`), `EventStream` (single-pass `IteratorAggregate` Generator with `toMessage()`).
+
+**Tools**
+- `Tool` interface; `ClosureTool` for inline tools; `ClassTool` abstract base where subclass `runTool()` parameter signatures drive the JSON Schema via reflection. `#[Param(description:)]` and `#[Enum(...)]` attributes refine the schema; backed enums are detected automatically.
+- `ToolChoice` value object (auto / any / tool('name') / none, with `disable_parallel_tool_use`); `ToolSet` collection; `ToolLoop` automatic round-trip executor with configurable `maxIterations` and `catchToolErrors`.
+
+**Files API (beta — auto-attaches `files-api-2025-04-14` header)**
+- `Resources\Files` with `upload()` (multipart/form-data), `get()`, `list()`, `delete()`, `downloadTo()`.
+- `FileUpload` factories from path (with `finfo` MIME detection) and from raw bytes; `FileResource` and `FileList` typed DTOs.
+
+**Batches API (beta — auto-attaches `message-batches-2024-09-24` header)**
+- `Resources\Batches` with `create()`, `get()`, `cancel()`, `list()`, `pollUntilDone()`, and `results()` that streams JSONL line-by-line.
+- `BatchEntry`, `BatchResponse`, `BatchResult`, `BatchStatus` enum.
+
+**MCP connector (beta — caller attaches `mcp-client-2025-04-04` header)**
+- `Beta\Mcp\McpServer::url()` typed builder; `Beta\Mcp\McpToolApproval` (always / never / unless_disallowed / custom mode + allow/deny lists).
+- `Beta\BetaHeaders` registry with constants for the well-known `anthropic-beta` values.
+
+**Util**
 - `Util\Json` safe encode/decode that throws `AnthropicException` on failure.
-- Repository hygiene: `.gitignore`, `.gitattributes`, `.editorconfig`, `phpstan.neon.dist`, `phpunit.xml.dist`, `pint.json`, GitHub Actions CI workflow.
-- Full README rewrite, `UPGRADING.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`.
+- `Util\Clock` and `Util\Sleeper` interfaces for testable retries.
+
+**Repository / DX**
+- Repository hygiene: `.gitignore`, `.gitattributes`, `.editorconfig`, `phpstan.neon.dist` (level 9, strict + deprecation rules), `phpunit.xml.dist` (PHPUnit 11), `pint.json`.
+- GitHub Actions CI workflow (lint + phpstan + tests on PHP 8.2/8.3/8.4, lowest+highest deps).
+- Nightly integration workflow that smoke-tests against the live API (`ANTHROPIC_API_KEY` secret).
+- 11 runnable examples covering simple, streaming, tool use, tool loop, vision, prompt caching, extended thinking, MCP, files, batches.
+- Full PHPUnit suite: 145+ unit + contract tests with JSON/SSE fixtures and a programmable `FakePsr18Client`.
+- Rewritten `README.md`; new `UPGRADING.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`.
 
 ### Deprecated
 

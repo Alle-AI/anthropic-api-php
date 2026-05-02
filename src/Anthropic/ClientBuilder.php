@@ -11,6 +11,7 @@ use AlleAI\Anthropic\Http\RetryPolicy;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Fluent builder for {@see Client}. Use it when you need to inject a
@@ -37,6 +38,8 @@ final class ClientBuilder
     private ?StreamFactoryInterface $streamFactory = null;
     private float $timeout = 600.0;
     private ?string $userAgentSuffix = null;
+    private ?LoggerInterface $logger = null;
+    private bool $logBodies = false;
 
     public function withApiKey(string $apiKey): self
     {
@@ -115,6 +118,20 @@ final class ClientBuilder
         return $this;
     }
 
+    /**
+     * Attach a PSR-3 logger. The SDK emits one info-level entry per
+     * request and one per response (or error) sharing a correlation id.
+     * Pass `$logBodies = true` for verbose debugging only — bodies may
+     * contain user PII or model output.
+     */
+    public function withLogger(LoggerInterface $logger, bool $logBodies = false): self
+    {
+        $this->logger = $logger;
+        $this->logBodies = $logBodies;
+
+        return $this;
+    }
+
     public function build(): Client
     {
         if ($this->auth === null) {
@@ -135,6 +152,8 @@ final class ClientBuilder
             retryPolicy: $this->retryPolicy ?? new RetryPolicy(),
             timeout: $this->timeout,
             userAgentSuffix: $this->userAgentSuffix,
+            logger: $this->logger,
+            logBodies: $this->logBodies,
         );
 
         $httpClient = $this->httpClient ?? Client::discoverHttpClient();
