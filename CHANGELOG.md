@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta.2] - 2026-05-02
+
+### Added
+
+- `Resources\Models` for `GET /v1/models` (paginated) and `GET /v1/models/{id}` with typed `ModelInfo` and `ModelList` DTOs. `ModelInfo::toModel()` bridges back to the existing `Model` value object.
+- `Http\Middleware\LoggingMiddleware` — optional PSR-3 logger emitting one entry per request and one per response (or error) sharing a correlation id, with latency in ms. Bodies are **not** logged by default; opt in with `logBodies: true`. Wired through `ClientBuilder::withLogger($logger, $logBodies = false)`.
+- `Auth\RequestTransformingAuthProvider` sub-interface — `AuthProvider`s that need to mutate the entire request (URL / body / headers), not just inject headers. `AuthMiddleware` checks for it and hands over the whole request when an auth provider opts in. Backwards-compatible with all existing `AuthProvider` implementations.
+- `Auth\BedrockAuth` — first-class AWS Bedrock auth provider. Loads credentials via the AWS default chain, rewrites the URL to `bedrock-runtime.{region}.amazonaws.com/model/{modelId}/invoke` (or `invoke-with-response-stream` for streaming), transforms the body to Bedrock's expected shape (drops `model`/`stream`, injects `anthropic_version: bedrock-2023-05-31`), strips Anthropic-only headers, and signs with AWS SigV4. Requires `aws/aws-sdk-php` (suggest).
+- `Auth\VertexAuth` — first-class Google Vertex AI auth provider. Acquires OAuth tokens via Google ADC (`cloud-platform` scope), rewrites the URL to `{region}-aiplatform.googleapis.com` with the publisher path and `rawPredict`/`streamRawPredict` suffix, transforms the body (drops `model`/`stream`, injects `anthropic_version: vertex-2023-10-16`). Requires `google/auth` (suggest).
+- `examples/11-bedrock.php` and `examples/12-vertex.php` runnable smokes against the cloud backends.
+
+### Changed
+
+- README: new "Alternative deployments" section with Bedrock and Vertex usage; feature bullets flipped to "shipped" for Files / Batches / MCP / Models / PSR-3 logging / Bedrock / Vertex; roadmap collapsed to reflect what beta.2 actually contains.
+- `composer.json`: `aws/aws-sdk-php` and `google/auth` added under `require-dev` (so PHPStan and the test suite can resolve their symbols) and under `suggest` (so consumers see the install hint without pulling them by default).
+
 ## [2.0.0-beta.1] - 2026-05-02
 
 First public beta of the v2 line.
