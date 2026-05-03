@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta.3] - 2026-05-03
+
+### Added
+
+- Server-side tool definitions under `Tools\Server\` covering Anthropic's predefined tools: `WebSearchToolDefinition` (web search, with `max_uses` / `allowed_domains` / `blocked_domains` / `user_location` / `cache_control`), `ComputerToolDefinition` (computer use, with display dimensions), `BashToolDefinition`, and `TextEditorToolDefinition`. Each exposes its `betaHeader()` so callers don't have to remember the wire string.
+- `Messages\Content\ServerToolUseBlock` and `Messages\Content\WebSearchToolResultBlock` content types, including `isError()` / `errorCode()` / `results()` helpers covering both the success list and the `web_search_tool_result_error` envelope. `ContentBlockFactory` routes both new types.
+- `Messages::createMany(array, concurrency: int = 5)` — concurrent fan-out for N independent Messages create calls via libcurl multi-handle. Per-request failures land in-place as the corresponding exception class without aborting the batch. Backed by a new `Http\ConcurrentSender` interface and the `Http\ConcurrentTransport` implementation; `Client::fromComponents()` now accepts an optional `ConcurrentSender` so tests can substitute fakes.
+- Contract tests for `Resources\Files`, `Resources\Batches`, and `Resources\Models` covering wire-shape, header, query-string, multipart, JSONL streaming, and pagination cursor behavior. New `tests/Support/RecordingSleeper` shared between retry and poll-loop tests.
+- `examples/13-web-search.php` and `examples/14-concurrent.php`.
+- Infection mutation testing: `infection.json5` config scoped to the high-value modules (Util / Auth / Http / Messages / Models / Streaming / Tools / Exceptions, with the cURL-bound transports excluded as they need integration coverage), `composer infection` script, and `.github/workflows/mutation.yml` running weekly with a 60% minimum MSI / 75% covered MSI.
+
 ## [2.0.0-beta.2] - 2026-05-02
 
 ### Added
