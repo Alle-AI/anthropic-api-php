@@ -300,11 +300,10 @@ $client = Client::builder()
 
 | Tag | Status | Adds |
 |---|---|---|
-| `v2.0.0-beta.1` | shipped | Messages create + stream, tool use, vision, prompt caching, extended thinking, citations, Files, Batches, MCP connector, Models listing, PSR-3 logging, Bedrock + Vertex auth, 12 examples, full test suite, PHPStan level 9, deprecation shim |
-| `v2.0.0` | GA | Beta-feedback bug fixes, mutation testing, docs site |
-| `v2.1.0` | | Async / concurrent helpers; observability extras |
-| `v2.2.0` | | Alle-AI sister client (`AlleAI\AlleAI\Client`) for multi-model fan-out |
-| `v3.0.0` | | Remove `Alle_AI\Anthropic\AnthropicAPI` deprecation shim |
+| `v2.0.0` | **shipped** | Messages create + stream, tool use, vision, prompt caching, extended thinking, citations, Files, Batches, MCP connector, Models listing, PSR-3 logging, Bedrock + Vertex auth, server-side tools (web search / computer use / bash / text editor), `Messages::createMany()` concurrent fan-out, 14 examples, 186 tests, PHPStan level 9, weekly mutation testing, deprecation shim |
+| `v2.x` | rolling | Bug fixes, new Anthropic features as they ship, additional examples |
+| `v2.x` | future | Alle-AI sister client (`AlleAI\AlleAI\Client`) for multi-model fan-out |
+| `v3.0.0` | future | Remove `Alle_AI\Anthropic\AnthropicAPI` deprecation shim |
 
 ## Migration from v1.x
 

@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine prerelease flag
+        id: meta
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ "$tag" =~ -(alpha|beta|rc|dev) ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract CHANGELOG section for this tag
+        id: changelog
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          awk -v ver="$tag" '
+            BEGIN { capture = 0 }
+            /^## \[/ {
+              if (capture) exit
+              if (index($0, "[" ver "]") > 0) { capture = 1; next }
+            }
+            capture { print }
+          ' CHANGELOG.md > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "Release ${GITHUB_REF_NAME}." > release_notes.md
+          fi
+          echo "notes_path=release_notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: ${{ steps.changelog.outputs.notes_path }}
+          prerelease: ${{ steps.meta.outputs.prerelease }}
+          make_latest: ${{ steps.meta.outputs.prerelease == 'false' && 'true' || 'false' }}
+          generate_release_notes: false

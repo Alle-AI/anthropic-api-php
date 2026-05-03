@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-05-03
+
+First stable release of the v2 rewrite. Aggregates everything that
+landed across the three beta tags — see the entries below for the
+detail of each step.
+
+If you're upgrading from v1.x, read [UPGRADING.md](UPGRADING.md) for
+the full migration guide. The legacy `Alle_AI\Anthropic\AnthropicAPI`
+shim still works but emits `E_USER_DEPRECATED` notices on every call;
+it will be removed in v3.0. Set `ALLE_AI_ANTHROPIC_FAIL_ON_DEPRECATED=1`
+during migration to convert deprecations into thrown exceptions.
+
+### Highlights since v1.3
+
+- Modern PHP 8.2+ idioms: `readonly` DTOs, backed enums, attributes.
+- `AlleAI\Anthropic\Client` with PSR-18 / PSR-17 transport, middleware
+  stack (auth, user-agent, idempotency, retries with exponential
+  backoff and Retry-After honoring), and a typed exception hierarchy.
+- Full Messages API surface: text, vision (Image blocks), tool use
+  (closure / class-based with reflection-driven JSON Schema and
+  automatic `ToolLoop`), prompt caching, extended thinking, citations.
+- Streaming via Generator-based `EventStream` with `->toMessage()`
+  aggregation.
+- Server-side tools: web search, computer use, bash, text editor.
+- Files API and Message Batches (with JSONL streaming results and
+  `pollUntilDone`).
+- MCP connector via the `mcp_servers` field on Messages requests.
+- Concurrent fan-out: `Messages::createMany([...], concurrency: 5)`
+  drives N independent calls in parallel via libcurl multi-handle.
+- Models listing and metadata.
+- AWS Bedrock and Google Vertex AI auth providers in-package, opt-in
+  via `aws/aws-sdk-php` / `google/auth` (suggested, not required).
+- Test suite: 186 tests / 870 assertions, PHPStan level 9 clean,
+  weekly Infection mutation testing.
+- 14 runnable examples, full UPGRADING / CONTRIBUTING / SECURITY /
+  CoC governance, GitHub Actions CI matrix on PHP 8.2 / 8.3 / 8.4.
+
 ## [2.0.0-beta.3] - 2026-05-03
 
 ### Added
