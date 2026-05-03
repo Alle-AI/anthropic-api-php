@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "id": "file_01A",
+      "type": "file",
+      "filename": "a.pdf",
+      "mime_type": "application/pdf",
+      "size_bytes": 100,
+      "created_at": "2026-04-01T00:00:00Z",
+      "downloadable": false
+    },
+    {
+      "id": "file_01B",
+      "type": "file",
+      "filename": "b.txt",
+      "mime_type": "text/plain",
+      "size_bytes": 42,
+      "created_at": "2026-04-02T00:00:00Z",
+      "downloadable": false
+    }
+  ],
+  "has_more": false,
+  "first_id": "file_01A",
+  "last_id": "file_01B"
+}

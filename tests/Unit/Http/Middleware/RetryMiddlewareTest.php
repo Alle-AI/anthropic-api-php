@@ -7,7 +7,7 @@ namespace AlleAI\Anthropic\Tests\Unit\Http\Middleware;
 use AlleAI\Anthropic\Exceptions\ConnectionException;
 use AlleAI\Anthropic\Http\Middleware\RetryMiddleware;
 use AlleAI\Anthropic\Http\RetryPolicy;
-use AlleAI\Anthropic\Util\Sleeper;
+use AlleAI\Anthropic\Tests\Support\RecordingSleeper;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -128,16 +128,5 @@ final class RetryMiddlewareTest extends TestCase
                 throw new ConnectionException('boom', $request);
             },
         );
-    }
-}
-
-final class RecordingSleeper implements Sleeper
-{
-    /** @var list<float> */
-    public array $durations = [];
-
-    public function sleep(float $seconds): void
-    {
-        $this->durations[] = $seconds;
     }
 }

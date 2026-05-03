@@ -1,0 +1,2 @@
+{"custom_id":"row-1","result":{"type":"succeeded","message":{"id":"msg_a","type":"message","role":"assistant","content":[{"type":"text","text":"Hola"}],"model":"claude-haiku-4-5","stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":5,"output_tokens":2}}}}
+{"custom_id":"row-2","result":{"type":"succeeded","message":{"id":"msg_b","type":"message","role":"assistant","content":[{"type":"text","text":"Bonjour"}],"model":"claude-haiku-4-5","stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":5,"output_tokens":2}}}}
