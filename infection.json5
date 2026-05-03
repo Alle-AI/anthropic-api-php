@@ -1,0 +1,41 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src/Anthropic/Util",
+            "src/Anthropic/Auth",
+            "src/Anthropic/Http",
+            "src/Anthropic/Messages",
+            "src/Anthropic/Models",
+            "src/Anthropic/Streaming",
+            "src/Anthropic/Tools",
+            "src/Anthropic/Exceptions"
+        ],
+        "excludes": [
+            "MinimalResponse.php",
+            "MinimalStream.php",
+            "ConcurrentTransport.php",
+            "CurlStreamTransport.php"
+        ]
+    },
+    "logs": {
+        "text": "build/infection/infection.log",
+        "html": "build/infection/infection.html",
+        "summary": "build/infection/summary.log",
+        "json": "build/infection/infection.json"
+    },
+    "tmpDir": ".infection-cache",
+    "phpUnit": {
+        "configDir": "."
+    },
+    "minMsi": 60,
+    "minCoveredMsi": 75,
+    "mutators": {
+        "@default": true,
+        "global-ignoreSourceCodeByRegex": [
+            "@phpstan-ignore.*",
+            "throw new \\\\InvalidArgumentException.*"
+        ]
+    },
+    "testFrameworkOptions": "--testsuite=Unit,Contract"
+}

@@ -1,0 +1,32 @@
+name: Mutation testing
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'  # weekly, Monday 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  infection:
+    name: Infection MSI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: pcov
+          tools: composer:v2
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist
+      - name: Run Infection
+        run: composer infection -- --min-msi=60 --min-covered-msi=75 --threads=4
+      - name: Upload Infection report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infection-report
+          path: build/infection/
+          if-no-files-found: ignore
